@@ -22,10 +22,44 @@ Two pieces:
   app state), agent boundaries, and schema-gated writes with structured
   refusals so an agent can self-correct instead of corrupting your data.
 
+## The React layer, in three lines
+
+```tsx
+useAgentState("cart", cart);                       // agents read live state, token-budgeted
+useAgentAction("checkout", {                       // agents act through a schema gate
+  description: "Pay for the items in the cart",
+  input: z.object({ email: z.string().email() }),
+  execute: ({ email }) => checkout(email)
+});
+<AgentBoundary name="cart">…</AgentBoundary>        {/* scopes both, like a component tree */}
+```
+
+Invalid input never reaches your handler — the agent gets a refusal naming the
+exact violated fields, so it fixes its call instead of corrupting your state.
+Browsers without WebMCP: everything no-ops and the page stays a normal human
+app (add [`@mcp-b/global`](https://github.com/WebMCP-org/npm-packages) as a
+polyfill if you want the tools everywhere).
+
+## Layout
+
+- [`packages/react`](packages/react) — `@agentperf/react`, the layer above. Built, tested.
+- [`packages/harness`](packages/harness) — the benchmark runner (Day 3).
+- [`apps/demo`](apps/demo) — one app, twice: plain vs. instrumented (Day 2).
+
+## Roadmap
+
+- **v1 (this week):** the benchmark numbers, the demo pair, npm release.
+- **v2 — priced tools:** every `useAgentAction` already carries an inert
+  `price` field. When [x402](https://www.x402.org/) settlement (Cloudflare's
+  Monetization Gateway, AWS CloudFront) is generally available, that field
+  starts settling: AgentPerf tells you what your fast lane is worth, x402 lets
+  you charge for it. Measurement first, monetization second — you can't price
+  a tool call you haven't measured.
+
 ## Status
 
-Day 0. Building in the open — first benchmark numbers land here when they're
-real, not before.
+Day 1 of 5. Library core is up: 16 tests, ~7.5KB ESM. First benchmark numbers
+land here when they're real, not before.
 
 ## License
 

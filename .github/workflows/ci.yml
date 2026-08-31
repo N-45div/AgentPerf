@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r --filter '@agentperf/react' --filter 'agentperf' typecheck
+      - run: pnpm -r build
+      - run: pnpm -r --filter '@agentperf/react' test
+      - name: Smoke test (demo + harness, no LLM)
+        run: |
+          npx playwright install chromium --with-deps
+          nohup npx vite preview --port 4173 --strictPort >/dev/null 2>&1 &
+          sleep 2
+          node ../../packages/harness/scripts/smoke.mjs http://localhost:4173/
+        working-directory: apps/demo

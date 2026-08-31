@@ -9,6 +9,26 @@ claim about it: *"10x faster, 90% fewer tokens."* Nobody has published the
 measurement. AgentPerf is that measurement, and the layer that makes the fast
 lane an afternoon of work.
 
+## First numbers (31 Aug 2026)
+
+Same page, same model (`gpt-5.6-luna`), same task (book a salon slot), same
+harness-verified success check — the only variable is how the agent touches
+the page:
+
+| lane | success | median wall-clock | median tokens | median round-trips |
+|------|---------|-------------------|---------------|--------------------|
+| DOM driving (accessibility tree) | 100% (3/3) | 14.2s | 10,046 | 8 |
+| WebMCP tools (`@agentperf/react`) | 100% (3/3) | **5.5s** | **4,240** | **4** |
+
+**DOM driving paid 2.4x the tokens and 2.6x the wall-clock — not the "10x
+faster, 90% fewer tokens" the WebMCP blogosphere repeats without a source.**
+The honest number on a deliberately small page, against a baseline that
+succeeds, is 2.4x — and the gap should widen with page size, since DOM cost
+scales with the page and tool cost doesn't. Full report and per-run data in
+[`benchmarks/`](benchmarks/2026-08-31-booking-gpt-5.6-luna/report.md); rerun it
+yourself with one command below. Caveats we know about: n=3, one small SPA,
+one model, localhost. Heavier pages and more models are next.
+
 Two pieces:
 
 - **`agentperf` — the benchmark.** One real app, one task ("find X, book a
@@ -56,10 +76,27 @@ polyfill if you want the tools everywhere).
   you charge for it. Measurement first, monetization second — you can't price
   a tool call you haven't measured.
 
+## Run it yourself
+
+```bash
+git clone https://github.com/N-45div/AgentPerf && cd AgentPerf
+pnpm install && pnpm -r build && npx playwright install chromium
+# terminal 1 — serve the demo
+cd apps/demo && npx vite preview --port 4173
+# terminal 2 — run the benchmark (any OpenAI-compatible key)
+export OPENAI_API_KEY=sk-…
+node packages/harness/dist/cli.js run --url http://localhost:4173/ --runs 3
+```
+
+Or try the live demo — https://n-45div.github.io/AgentPerf/ — in Chrome 149+
+with `chrome://flags/#enable-webmcp-testing` or the ChatGPT desktop browser,
+and tell your agent: *"book me a beard trim tomorrow."*
+
 ## Status
 
-Day 1 of 5. Library core is up: 16 tests, ~7.5KB ESM. First benchmark numbers
-land here when they're real, not before.
+Day 1 of 5, compressed: library (16 tests, ~7.5KB), demo app, harness, and
+the first honest numbers — all shipped on day one. Next: heavier pages, more
+models, more tasks, npm release.
 
 ## License
 

@@ -88,9 +88,10 @@ export OPENAI_API_KEY=sk-…
 node packages/harness/dist/cli.js run --url http://localhost:4173/ --runs 3
 ```
 
-Or try the live demo — https://n-45div.github.io/AgentPerf/ — in Chrome 149+
+Or try the live demo — **https://agentperf-demo.vercel.app** — in Chrome 149+
 with `chrome://flags/#enable-webmcp-testing` or the ChatGPT desktop browser,
-and tell your agent: *"book me a beard trim tomorrow."*
+and tell your agent: *"book me a beard trim tomorrow."* The measured numbers
+are on the page; the booking your agent makes shows up in the UI as it works.
 
 ## Status
 

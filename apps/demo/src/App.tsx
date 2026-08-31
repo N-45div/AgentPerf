@@ -73,6 +73,14 @@ export default function App() {
       <header>
         <h1>Fringe &amp; Co.</h1>
         <p>Neighborhood salon — book a chair. Humans use the page; agents use the tools.</p>
+        <p className="numbers">
+          Measured 31 Aug 2026: an agent booking here through WebMCP tools used{" "}
+          <strong>2.4x fewer tokens</strong> and finished <strong>2.6x faster</strong> (4 vs 8
+          round-trips, 100% success both ways) than driving this same page by DOM.{" "}
+          <a href="https://github.com/N-45div/AgentPerf" target="_blank" rel="noreferrer">
+            Harness &amp; full report
+          </a>
+        </p>
       </header>
 
       <input

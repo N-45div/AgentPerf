@@ -71,6 +71,7 @@ export default function App() {
   return (
     <div className="shell">
       <header>
+        <a className="backlink" href="../">← AgentPerf</a>
         <h1>Fringe &amp; Co.</h1>
         <p>Neighborhood salon — book a chair. Humans use the page; agents use the tools.</p>
         <p className="numbers">

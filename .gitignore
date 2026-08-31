@@ -7,3 +7,4 @@ coverage/
 .env
 .env.*
 packages/harness/results/
+*.local.mjs

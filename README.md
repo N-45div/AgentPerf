@@ -34,10 +34,14 @@ the page:
 
 **DOM driving paid 2.4x the tokens and 2.6x the wall-clock — not the "10x
 faster, ~90% fewer tokens" repeated across the WebMCP ecosystem.** Trace those
-numbers and you find methodology-free blog posts and vendors' own early
-testing against *screenshot* baselines. AgentPerf measures independently,
-against the far cheaper accessibility-tree baseline, with success verified on
-the rendered page — so 2.4x is the honest, conservative number on a
+numbers and you find a methodology-free blog post (the 10x), and token-only
+counts from the ecosystem's own testing against *screenshot* baselines —
+Google's early figures, and MCP-B creator Alex Nahas's [CDP-server
+benchmark](https://github.com/WebMCP-org/chrome-devtools-quickstart), which
+honestly notes that speed is "harder to measure." Nobody had measured **task
+completion**: both lanes, wall-clock included, success verified on the
+rendered page, failures counted. That's what AgentPerf does — against the far
+cheaper accessibility-tree baseline, so 2.4x is the conservative number on a
 deliberately small page, and the gap should widen with page size, since DOM
 cost scales with the page and tool cost doesn't. Full report and per-run data in
 [`benchmarks/`](benchmarks/2026-08-31-booking-gpt-5.6-luna/report.md). Caveats

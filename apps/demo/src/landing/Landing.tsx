@@ -76,12 +76,12 @@ export function Landing() {
         <div className="wrap">
           <h2>The honest numbers</h2>
           <p className="lead">
-            The claims everywhere — “10x faster, ~90% fewer tokens” — trace back to
-            methodology-free blog posts and vendors' own early testing against screenshot
-            baselines. We measured independently, against the cheaper accessibility-tree
-            baseline, with success verified on the rendered page: the honest number on a
-            deliberately small page is 2.4x — and DOM cost scales with page size while tool
-            cost doesn't.
+            The claims everywhere — “10x faster, ~90% fewer tokens” — trace back to a
+            methodology-free blog post and token-only counts from the ecosystem's own testing
+            against screenshot baselines. Nobody had measured task completion: both lanes,
+            wall-clock included, success verified on the rendered page. We did — against the
+            cheaper accessibility-tree baseline, so 2.4x is the conservative number on a
+            deliberately small page. And DOM cost scales with page size; tool cost doesn't.
           </p>
           <table className="numbers-table">
             <thead>

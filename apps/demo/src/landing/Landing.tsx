@@ -76,9 +76,11 @@ export function Landing() {
         <div className="wrap">
           <h2>The honest numbers</h2>
           <p className="lead">
-            The WebMCP blogosphere repeats “10x faster, 90% fewer tokens” with no source. We built
-            the harness and measured: on a deliberately small page, against a baseline that
-            succeeds every time, the truth is 2.4x — and DOM cost scales with page size while tool
+            The claims everywhere — “10x faster, ~90% fewer tokens” — trace back to
+            methodology-free blog posts and vendors' own early testing against screenshot
+            baselines. We measured independently, against the cheaper accessibility-tree
+            baseline, with success verified on the rendered page: the honest number on a
+            deliberately small page is 2.4x — and DOM cost scales with page size while tool
             cost doesn't.
           </p>
           <table className="numbers-table">

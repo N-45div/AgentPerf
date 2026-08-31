@@ -33,10 +33,13 @@ the page:
 | WebMCP tools (`@agentperf/react`) | 100% (3/3) | **5.5s** | **4,240** | **4** |
 
 **DOM driving paid 2.4x the tokens and 2.6x the wall-clock — not the "10x
-faster, 90% fewer tokens" the WebMCP blogosphere repeats without a source.**
-The honest number on a deliberately small page, against a baseline that
-succeeds, is 2.4x — and the gap should widen with page size, since DOM cost
-scales with the page and tool cost doesn't. Full report and per-run data in
+faster, ~90% fewer tokens" repeated across the WebMCP ecosystem.** Trace those
+numbers and you find methodology-free blog posts and vendors' own early
+testing against *screenshot* baselines. AgentPerf measures independently,
+against the far cheaper accessibility-tree baseline, with success verified on
+the rendered page — so 2.4x is the honest, conservative number on a
+deliberately small page, and the gap should widen with page size, since DOM
+cost scales with the page and tool cost doesn't. Full report and per-run data in
 [`benchmarks/`](benchmarks/2026-08-31-booking-gpt-5.6-luna/report.md). Caveats
 we know about: n=3, one small SPA, one model, localhost. Heavier pages and
 more models are next.

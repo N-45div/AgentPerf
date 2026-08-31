@@ -1,0 +1,93 @@
+:root {
+  color-scheme: light;
+  --ink: #1c1917;
+  --muted: #78716c;
+  --line: #e7e5e4;
+  --accent: #9a3412;
+  --accent-soft: #ffedd5;
+  --bg: #fafaf9;
+  --card: #ffffff;
+  --ok: #166534;
+  --ok-soft: #dcfce7;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.shell { max-width: 860px; margin: 0 auto; padding: 24px 20px 120px; }
+
+header h1 { font-size: 26px; margin: 0; letter-spacing: -0.02em; }
+header p { color: var(--muted); margin: 4px 0 0; }
+
+.search {
+  width: 100%; margin: 20px 0 12px; padding: 10px 14px;
+  border: 1px solid var(--line); border-radius: 10px; font: inherit; background: var(--card);
+}
+
+.services { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 14px 16px; text-align: left; font: inherit; cursor: pointer;
+}
+.card:hover { border-color: var(--accent); }
+.card.selected { border-color: var(--accent); background: var(--accent-soft); }
+.card .name { font-weight: 600; }
+.card .meta { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+h2 { font-size: 17px; margin: 28px 0 10px; }
+
+.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.slot {
+  padding: 8px 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--card);
+  font: inherit; font-size: 13px; cursor: pointer; text-align: center;
+}
+.slot:hover:not(:disabled) { border-color: var(--accent); }
+.slot.selected { border-color: var(--accent); background: var(--accent-soft); }
+.slot:disabled { opacity: 0.35; cursor: not-allowed; text-decoration: line-through; }
+.slot .d { color: var(--muted); font-size: 11px; }
+
+form.book { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+form.book input {
+  flex: 1 1 180px; padding: 10px 12px; border: 1px solid var(--line);
+  border-radius: 10px; font: inherit; background: var(--card);
+}
+form.book button, .linkish {
+  padding: 10px 18px; border: 0; border-radius: 10px; background: var(--accent);
+  color: white; font: inherit; font-weight: 600; cursor: pointer;
+}
+form.book button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.confirm {
+  margin-top: 16px; padding: 14px 16px; border-radius: 12px;
+  background: var(--ok-soft); color: var(--ok); border: 1px solid #bbf7d0;
+}
+.confirm code { font-weight: 700; }
+
+.bookings { margin-top: 8px; padding: 0; list-style: none; }
+.bookings li {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
+  margin-bottom: 8px; background: var(--card);
+}
+.bookings button {
+  border: 1px solid var(--line); background: transparent; border-radius: 8px;
+  padding: 6px 10px; font: inherit; font-size: 13px; cursor: pointer; color: var(--muted);
+}
+.bookings button:hover { color: var(--accent); border-color: var(--accent); }
+
+.dock {
+  position: fixed; right: 16px; bottom: 16px; padding: 10px 14px;
+  border-radius: 12px; background: var(--ink); color: #fafaf9; font-size: 13px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18); max-width: 300px;
+}
+.dock .n { color: #fdba74; font-weight: 700; }
+.dock .hint { color: #a8a29e; margin-top: 2px; font-size: 12px; }
+
+.empty { color: var(--muted); }

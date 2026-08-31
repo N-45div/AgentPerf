@@ -1,6 +1,6 @@
 {
   "name": "agentperf",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Measure what AI agents pay to use a website: the same task via DOM driving vs. WebMCP tool calls — wall-clock, tokens, round-trips, success rate.",
   "license": "Apache-2.0",
   "repository": {

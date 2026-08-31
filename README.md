@@ -1,5 +1,10 @@
 # AgentPerf
 
+[![npm: agentperf](https://img.shields.io/npm/v/agentperf?label=agentperf&color=f97316)](https://www.npmjs.com/package/agentperf)
+[![npm: @agentperf/react](https://img.shields.io/npm/v/%40agentperf%2Freact?label=%40agentperf%2Freact&color=f97316)](https://www.npmjs.com/package/@agentperf/react)
+[![CI](https://github.com/N-45div/AgentPerf/actions/workflows/ci.yml/badge.svg)](https://github.com/N-45div/AgentPerf/actions)
+[![live demo](https://img.shields.io/badge/live-agentperf--demo.vercel.app-1c1917)](https://agentperf-demo.vercel.app)
+
 **Measure what AI agents pay to use your website — then stop making them pay it.**
 
 Agents are becoming real visitors to the web. Today they use sites the slow way:
@@ -95,9 +100,10 @@ are on the page; the booking your agent makes shows up in the UI as it works.
 
 ## Status
 
-Day 1 of 5, compressed: library (16 tests, ~7.5KB), demo app, harness, and
-the first honest numbers — all shipped on day one. Next: heavier pages, more
-models, more tasks, npm release.
+Day 1 of 5, compressed: library (16 tests, ~7.5KB), demo app, harness, the
+first honest numbers, the landing page, and the v0.1.0 npm release — all
+shipped on day one (31 Aug 2026). Next: heavier pages (turn "the gap widens
+with page size" into data), more models, more tasks.
 
 ## License
 

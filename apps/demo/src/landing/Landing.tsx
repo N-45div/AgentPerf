@@ -121,7 +121,10 @@ export function Landing() {
         <div className="wrap">
           <h2>The fast lane is three lines</h2>
           <p className="lead">
-            Keep your app exactly as it is for humans. Add a second doorway for agents.
+            Keep your app exactly as it is for humans. Add a second doorway for agents.{" "}
+            <code style={{ fontFamily: "var(--mono)", color: "var(--amber)" }}>
+              npm i @agentperf/react zod
+            </code>
           </p>
           <pre className="code">{`useAgentState(`}<span className="s">"cart"</span>{`, cart);                        `}<span className="c">{`// agents read live state, token-budgeted`}</span>{`
 
@@ -139,7 +142,9 @@ useAgentAction(`}<span className="s">"checkout"</span>{`, {                     
           <p className="lead" />
           <div className="cards">
             <div className="card-b">
-              <h3>@agentperf/react</h3>
+              <h3>
+                <a href="https://www.npmjs.com/package/@agentperf/react">@agentperf/react</a>
+              </h3>
               <p>
                 <code>useAgentState</code> — every slice flows into one budgeted{" "}
                 <code>get_page_state</code> tool. <code>useAgentAction</code> — zod-gated writes
@@ -148,7 +153,9 @@ useAgentAction(`}<span className="s">"checkout"</span>{`, {                     
               </p>
             </div>
             <div className="card-b">
-              <h3>agentperf (the harness)</h3>
+              <h3>
+                <a href="https://www.npmjs.com/package/agentperf">agentperf</a> (the harness)
+              </h3>
               <p>
                 Benchmarks any WebMCP page in stock Chromium — it injects its own{" "}
                 <code>document.modelContext</code> host, no browser flag needed. Two lanes, one

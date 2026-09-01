@@ -21,16 +21,24 @@ and the React layer that makes the fast lane an afternoon of work.
 | [`agentperf`](https://www.npmjs.com/package/agentperf) | `npm i -g agentperf` | The benchmark CLI. Runs the same task via DOM driving vs. WebMCP tools; reports wall-clock, tokens, round-trips, success rate. Benchmarks **any** WebMCP page in stock Chromium — it injects its own `document.modelContext` host, no browser flag needed. |
 | [`@agentperf/react`](https://www.npmjs.com/package/@agentperf/react) | `npm i @agentperf/react zod` | The fast lane for React apps: `useAgentState` (token-budgeted state snapshots), `useAgentAction` (schema-gated actions with structured refusals), `AgentBoundary` (scoping). No-ops safely in browsers without WebMCP. |
 
-## The numbers (measured 31 Aug 2026)
+## The numbers
 
-Same page, same model (`gpt-5.6-luna`), same task (book a salon slot), same
-harness-verified success check — the only variable is how the agent touches
-the page:
+Same page, same task (book a salon slot), same harness-verified success check
+— the only variable is how the agent touches the page. Two model families,
+n=3 per lane:
 
-| lane | success | median wall-clock | median tokens | median round-trips |
-|------|---------|-------------------|---------------|--------------------|
-| DOM driving (accessibility tree) | 100% (3/3) | 14.2s | 10,046 | 8 |
-| WebMCP tools (`@agentperf/react`) | 100% (3/3) | **5.5s** | **4,240** | **4** |
+| model | lane | success | median wall-clock | median tokens | round-trips |
+|-------|------|---------|-------------------|---------------|-------------|
+| gpt-5.6-luna | DOM driving | 100% (3/3) | 14.2s | 10,046 | 8 |
+| gpt-5.6-luna | **WebMCP tools** | 100% (3/3) | **5.5s** | **4,240** | **4** |
+| claude-sonnet-5 | DOM driving | 100% (3/3) | 25.1s | 21,134 | 8 |
+| claude-sonnet-5 | **WebMCP tools** | 100% (3/3) | **16.1s** | **8,495** | **4** |
+
+The token multiplier replicates across model families — **2.4x and 2.5x** —
+and the round-trip counts are *identical* (8 vs 4), which says the structural
+saving is a property of the interface, not of the model. Wall-clock is the
+environment-dependent one (2.6x and 1.6x): it moves with provider latency, so
+treat tokens and round-trips as the robust numbers.
 
 **DOM driving paid 2.4x the tokens and 2.6x the wall-clock — not the "10x
 faster, ~90% fewer tokens" repeated across the WebMCP ecosystem.** Trace those
@@ -41,9 +49,15 @@ benchmark](https://github.com/WebMCP-org/chrome-devtools-quickstart), which
 honestly notes that speed is "harder to measure." Nobody had measured **task
 completion**: both lanes, wall-clock included, success verified on the
 rendered page, failures counted. That's what AgentPerf does — against the far
-cheaper accessibility-tree baseline, so 2.4x is the conservative number on a
-deliberately small page, and the gap should widen with page size, since DOM
-cost scales with the page and tool cost doesn't. Full report and per-run data in
+cheaper accessibility-tree baseline, so ~2.4x is the conservative number on a
+deliberately small page.
+
+And it *is* a small page: the salon app's entire accessibility tree is 1,010
+characters — about 253 tokens per `read_page`. So almost none of that 2.4x
+came from reading the page; it came from needing twice the round-trips, each
+one resending a growing conversation. That's the floor of this effect, not
+the ceiling — on a page whose tree costs thousands of tokens to read, the DOM
+lane pays that on *every* read. Measuring exactly that is the next row. Full report and per-run data in
 [`benchmarks/`](benchmarks/2026-08-31-booking-gpt-5.6-luna/report.md). Caveats
 we know about: n=3, one small SPA, one model, localhost. Heavier pages and
 more models are next.

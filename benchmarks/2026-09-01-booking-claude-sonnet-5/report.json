@@ -1,0 +1,97 @@
+{
+  "url": "https://agentperf-demo.vercel.app/demo/",
+  "model": "anthropic/claude-sonnet-5",
+  "task": {
+    "id": "booking",
+    "prompt": "You are on the booking page of the Fringe & Co. salon. Book the 'Beard trim' service for Dana Smith (dana@example.com): pick any open slot on the earliest available day, complete the booking, and report the confirmation code the page shows.",
+    "successPattern": "FR-[A-Z0-9]{5}",
+    "maxTurns": 20
+  },
+  "startedAt": "2026-09-01T03:46:28.139Z",
+  "lanes": [
+    {
+      "lane": "dom",
+      "runs": [
+        {
+          "lane": "dom",
+          "taskId": "booking",
+          "success": true,
+          "wallClockMs": 23203,
+          "turns": 8,
+          "actions": 9,
+          "promptTokens": 20294,
+          "completionTokens": 651,
+          "totalTokens": 20945
+        },
+        {
+          "lane": "dom",
+          "taskId": "booking",
+          "success": true,
+          "wallClockMs": 25437,
+          "turns": 8,
+          "actions": 9,
+          "promptTokens": 20446,
+          "completionTokens": 688,
+          "totalTokens": 21134
+        },
+        {
+          "lane": "dom",
+          "taskId": "booking",
+          "success": true,
+          "wallClockMs": 25135,
+          "turns": 8,
+          "actions": 9,
+          "promptTokens": 20462,
+          "completionTokens": 689,
+          "totalTokens": 21151
+        }
+      ],
+      "successRate": 1,
+      "medianWallClockMs": 25135,
+      "medianTotalTokens": 21134,
+      "medianTurns": 8
+    },
+    {
+      "lane": "tools",
+      "runs": [
+        {
+          "lane": "tools",
+          "taskId": "booking",
+          "success": true,
+          "wallClockMs": 16704,
+          "turns": 5,
+          "actions": 3,
+          "promptTokens": 10636,
+          "completionTokens": 416,
+          "totalTokens": 11052
+        },
+        {
+          "lane": "tools",
+          "taskId": "booking",
+          "success": true,
+          "wallClockMs": 16091,
+          "turns": 4,
+          "actions": 3,
+          "promptTokens": 8063,
+          "completionTokens": 432,
+          "totalTokens": 8495
+        },
+        {
+          "lane": "tools",
+          "taskId": "booking",
+          "success": true,
+          "wallClockMs": 13789,
+          "turns": 4,
+          "actions": 3,
+          "promptTokens": 8009,
+          "completionTokens": 415,
+          "totalTokens": 8424
+        }
+      ],
+      "successRate": 1,
+      "medianWallClockMs": 16091,
+      "medianTotalTokens": 8495,
+      "medianTurns": 4
+    }
+  ]
+}

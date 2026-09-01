@@ -1,0 +1,171 @@
+{
+  "url": "http://localhost:4173/catalog/",
+  "model": "gpt-5.6-luna",
+  "task": {
+    "id": "catalog-checkout",
+    "prompt": "You are on the Northwind Supply catalog page, which sells 72 desk-hardware products. Find the cheapest wireless keyboard that is in stock and rated 4.5 or higher — sold-out products do not count, and wired keyboards do not count. Add exactly one of it to the cart, place the order for Dana Smith (dana@example.com), and report the order number the page shows.",
+    "successPattern": "Order NW-[A-Z0-9]{5} confirmed: 1 x Nimbus Air 75, total \\$89\\.99",
+    "maxTurns": 24
+  },
+  "startedAt": "2026-09-01T04:09:20.865Z",
+  "lanes": [
+    {
+      "lane": "dom",
+      "runs": [
+        {
+          "lane": "dom",
+          "taskId": "catalog-checkout",
+          "success": true,
+          "wallClockMs": 10128,
+          "turns": 7,
+          "actions": 8,
+          "promptTokens": 102277,
+          "completionTokens": 260,
+          "totalTokens": 102537,
+          "claimSummary": "Ordered exactly one Nimbus Air 75 wireless keyboard (in stock, rated 4.6) for Dana Smith at dana@example.com. Order number: NW-7YDSV."
+        },
+        {
+          "lane": "dom",
+          "taskId": "catalog-checkout",
+          "success": true,
+          "wallClockMs": 12130,
+          "turns": 8,
+          "actions": 8,
+          "promptTokens": 116322,
+          "completionTokens": 249,
+          "totalTokens": 116571,
+          "claimSummary": "Ordered exactly one Nimbus Air 75, the cheapest in-stock wireless keyboard rated 4.5+, for Dana Smith (dana@example.com). Order number: NW-7YDSV."
+        },
+        {
+          "lane": "dom",
+          "taskId": "catalog-checkout",
+          "success": true,
+          "wallClockMs": 24263,
+          "turns": 9,
+          "actions": 9,
+          "promptTokens": 128448,
+          "completionTokens": 269,
+          "totalTokens": 128717,
+          "claimSummary": "Ordered exactly one Nimbus Air 75 wireless keyboard (in stock, rated 4.6) for Dana Smith at dana@example.com. Order number: NW-7YDSV."
+        },
+        {
+          "lane": "dom",
+          "taskId": "catalog-checkout",
+          "success": true,
+          "wallClockMs": 25157,
+          "turns": 7,
+          "actions": 7,
+          "promptTokens": 97189,
+          "completionTokens": 225,
+          "totalTokens": 97414,
+          "claimSummary": "Ordered exactly one Nimbus Air 75 wireless keyboard ($89.99), the cheapest in-stock keyboard rated 4.5 or higher. Order number: NW-7YDSV."
+        },
+        {
+          "lane": "dom",
+          "taskId": "catalog-checkout",
+          "success": true,
+          "wallClockMs": 28979,
+          "turns": 6,
+          "actions": 8,
+          "promptTokens": 89832,
+          "completionTokens": 252,
+          "totalTokens": 90084,
+          "claimSummary": "Ordered exactly one Nimbus Air 75 wireless keyboard (the cheapest in-stock keyboard rated 4.5+). Order number: NW-7YDSV."
+        }
+      ],
+      "successRate": 1,
+      "medianWallClockMs": 24263,
+      "medianTotalTokens": 102537,
+      "medianTurns": 7,
+      "meanWallClockMs": 20131,
+      "meanTotalTokens": 107065,
+      "wallClockRangeMs": [
+        10128,
+        28979
+      ],
+      "totalTokensRange": [
+        90084,
+        128717
+      ]
+    },
+    {
+      "lane": "tools",
+      "runs": [
+        {
+          "lane": "tools",
+          "taskId": "catalog-checkout",
+          "success": true,
+          "wallClockMs": 6001,
+          "turns": 5,
+          "actions": 4,
+          "promptTokens": 7277,
+          "completionTokens": 155,
+          "totalTokens": 7432,
+          "claimSummary": "Ordered exactly one Nimbus Air 75, the cheapest in-stock wireless keyboard rated 4.5 or higher. Order number: NW-7YDSV."
+        },
+        {
+          "lane": "tools",
+          "taskId": "catalog-checkout",
+          "success": true,
+          "wallClockMs": 6706,
+          "turns": 6,
+          "actions": 5,
+          "promptTokens": 9287,
+          "completionTokens": 181,
+          "totalTokens": 9468,
+          "claimSummary": "Ordered exactly one Nimbus Air 75, the cheapest in-stock wireless keyboard rated 4.5 or higher, for Dana Smith. Order number: NW-7YDSV."
+        },
+        {
+          "lane": "tools",
+          "taskId": "catalog-checkout",
+          "success": true,
+          "wallClockMs": 7595,
+          "turns": 6,
+          "actions": 5,
+          "promptTokens": 9287,
+          "completionTokens": 179,
+          "totalTokens": 9466,
+          "claimSummary": "Ordered exactly one Nimbus Air 75, the cheapest in-stock wireless keyboard rated 4.5+, for Dana Smith. Order number: NW-7YDSV."
+        },
+        {
+          "lane": "tools",
+          "taskId": "catalog-checkout",
+          "success": true,
+          "wallClockMs": 5475,
+          "turns": 5,
+          "actions": 4,
+          "promptTokens": 7277,
+          "completionTokens": 157,
+          "totalTokens": 7434,
+          "claimSummary": "Ordered exactly one Nimbus Air 75, the cheapest in-stock wireless keyboard rated 4.5+, for Dana Smith. Order number: NW-7YDSV."
+        },
+        {
+          "lane": "tools",
+          "taskId": "catalog-checkout",
+          "success": true,
+          "wallClockMs": 5978,
+          "turns": 5,
+          "actions": 4,
+          "promptTokens": 7277,
+          "completionTokens": 157,
+          "totalTokens": 7434,
+          "claimSummary": "Ordered exactly one Nimbus Air 75, the cheapest in-stock wireless keyboard rated 4.5+, for Dana Smith. Order number: NW-7YDSV."
+        }
+      ],
+      "successRate": 1,
+      "medianWallClockMs": 6001,
+      "medianTotalTokens": 7434,
+      "medianTurns": 5,
+      "meanWallClockMs": 6351,
+      "meanTotalTokens": 8247,
+      "wallClockRangeMs": [
+        5475,
+        7595
+      ],
+      "totalTokensRange": [
+        7432,
+        9468
+      ]
+    }
+  ]
+}

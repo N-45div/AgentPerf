@@ -188,6 +188,20 @@ const DOM_TOOLS: LlmToolDef[] = [
       },
       required: ["role", "name", "value"]
     }
+  },
+  {
+    name: "select_option",
+    description:
+      "Choose an option in a dropdown (select) by its accessible name and the option's visible " +
+      "label. Returns the updated page.",
+    parameters: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Accessible name of the dropdown" },
+        option: { type: "string", description: "Visible label of the option to choose" }
+      },
+      required: ["name", "option"]
+    }
   }
 ];
 
@@ -231,7 +245,7 @@ export async function runDomLane(
       llm,
       systemPrompt:
         "You complete tasks on a web page the way a browser-driving agent does: read the " +
-        "accessibility tree with read_page, then click and fill elements by role and name. " +
+        "accessibility tree with read_page, then click, fill and select_option by role and name. " +
         "Every action returns the updated page. When the task is fully done, call task_complete.",
       taskPrompt: task.prompt,
       tools: DOM_TOOLS,
@@ -255,6 +269,14 @@ export async function runDomLane(
             await target(args.role, args.name).fill(String(args.value ?? ""), { timeout: 5000 });
             await page.waitForTimeout(SETTLE_MS);
             return `Filled ${String(args.role)} "${String(args.name)}".\n\n${await snapshot()}`;
+          }
+          case "select_option": {
+            await target("combobox", args.name).selectOption(
+              { label: String(args.option) },
+              { timeout: 5000 }
+            );
+            await page.waitForTimeout(SETTLE_MS);
+            return `Selected "${String(args.option)}" in "${String(args.name)}".\n\n${await snapshot()}`;
           }
           default:
             return `ACTION FAILED: unknown action "${name}"`;

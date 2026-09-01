@@ -1,0 +1,171 @@
+{
+  "url": "http://localhost:4173/demo/",
+  "model": "gpt-5.6-luna",
+  "task": {
+    "id": "booking",
+    "prompt": "You are on the booking page of the Fringe & Co. salon. Book the 'Beard trim' service for Dana Smith (dana@example.com): pick any open slot on the earliest available day, complete the booking, and report the confirmation code the page shows.",
+    "successPattern": "FR-[A-Z0-9]{5}",
+    "maxTurns": 20
+  },
+  "startedAt": "2026-09-01T04:01:35.275Z",
+  "lanes": [
+    {
+      "lane": "dom",
+      "runs": [
+        {
+          "lane": "dom",
+          "taskId": "booking",
+          "success": true,
+          "wallClockMs": 11617,
+          "turns": 5,
+          "actions": 6,
+          "promptTokens": 9872,
+          "completionTokens": 200,
+          "totalTokens": 10072,
+          "claimSummary": "Booked Beard trim for Dana Smith on 2026-09-02 at 10:00, the earliest available day. Confirmation code: FR-VGE35."
+        },
+        {
+          "lane": "dom",
+          "taskId": "booking",
+          "success": true,
+          "wallClockMs": 7592,
+          "turns": 5,
+          "actions": 6,
+          "promptTokens": 9874,
+          "completionTokens": 200,
+          "totalTokens": 10074,
+          "claimSummary": "Booked Beard trim for Dana Smith at the earliest available slot, 2026-09-02 10:00. Confirmation code: FR-YQ11I."
+        },
+        {
+          "lane": "dom",
+          "taskId": "booking",
+          "success": true,
+          "wallClockMs": 6730,
+          "turns": 5,
+          "actions": 6,
+          "promptTokens": 9876,
+          "completionTokens": 208,
+          "totalTokens": 10084,
+          "claimSummary": "Booked Beard trim for Dana Smith (dana@example.com) on the earliest available day, 2026-09-02 at 10:00. Confirmation code: FR-4YCN5."
+        },
+        {
+          "lane": "dom",
+          "taskId": "booking",
+          "success": true,
+          "wallClockMs": 7504,
+          "turns": 5,
+          "actions": 6,
+          "promptTokens": 9876,
+          "completionTokens": 209,
+          "totalTokens": 10085,
+          "claimSummary": "Booked the Beard trim for Dana Smith (dana@example.com) on 2026-09-02 at 10:00, the earliest available day. Confirmation code: FR-4OIB3."
+        },
+        {
+          "lane": "dom",
+          "taskId": "booking",
+          "success": true,
+          "wallClockMs": 5811,
+          "turns": 5,
+          "actions": 6,
+          "promptTokens": 9876,
+          "completionTokens": 203,
+          "totalTokens": 10079,
+          "claimSummary": "Booked the Beard trim service for Dana Smith at the earliest available slot, 2026-09-02 10:00. Confirmation code: FR-7T06E."
+        }
+      ],
+      "successRate": 1,
+      "medianWallClockMs": 7504,
+      "medianTotalTokens": 10079,
+      "medianTurns": 5,
+      "meanWallClockMs": 7851,
+      "meanTotalTokens": 10079,
+      "wallClockRangeMs": [
+        5811,
+        11617
+      ],
+      "totalTokensRange": [
+        10072,
+        10085
+      ]
+    },
+    {
+      "lane": "tools",
+      "runs": [
+        {
+          "lane": "tools",
+          "taskId": "booking",
+          "success": true,
+          "wallClockMs": 5536,
+          "turns": 4,
+          "actions": 3,
+          "promptTokens": 4138,
+          "completionTokens": 130,
+          "totalTokens": 4268,
+          "claimSummary": "Booked Beard trim for Dana Smith on the earliest available day, September 2, 2026 at 10:00. Confirmation code: FR-PKNVJ."
+        },
+        {
+          "lane": "tools",
+          "taskId": "booking",
+          "success": true,
+          "wallClockMs": 5006,
+          "turns": 4,
+          "actions": 3,
+          "promptTokens": 4137,
+          "completionTokens": 129,
+          "totalTokens": 4266,
+          "claimSummary": "Booked Beard trim for Dana Smith on 2026-09-02 at 10:00, the earliest available day. Confirmation code: FR-OUPFM."
+        },
+        {
+          "lane": "tools",
+          "taskId": "booking",
+          "success": true,
+          "wallClockMs": 4336,
+          "turns": 4,
+          "actions": 3,
+          "promptTokens": 4139,
+          "completionTokens": 131,
+          "totalTokens": 4270,
+          "claimSummary": "Booked Beard trim for Dana Smith on the earliest available day, September 2, 2026 at 10:00. Confirmation code: FR-VS6Y9."
+        },
+        {
+          "lane": "tools",
+          "taskId": "booking",
+          "success": true,
+          "wallClockMs": 5292,
+          "turns": 4,
+          "actions": 3,
+          "promptTokens": 4138,
+          "completionTokens": 130,
+          "totalTokens": 4268,
+          "claimSummary": "Booked Beard trim for Dana Smith at the earliest available slot, September 2, 2026 at 10:00. Confirmation code: FR-5CL30."
+        },
+        {
+          "lane": "tools",
+          "taskId": "booking",
+          "success": true,
+          "wallClockMs": 4974,
+          "turns": 4,
+          "actions": 3,
+          "promptTokens": 4138,
+          "completionTokens": 130,
+          "totalTokens": 4268,
+          "claimSummary": "Booked Beard trim for Dana Smith on 2026-09-02 at 10:00, the earliest available day. Confirmation code: FR-MUJ8L."
+        }
+      ],
+      "successRate": 1,
+      "medianWallClockMs": 5006,
+      "medianTotalTokens": 4268,
+      "medianTurns": 4,
+      "meanWallClockMs": 5029,
+      "meanTotalTokens": 4268,
+      "wallClockRangeMs": [
+        4336,
+        5536
+      ],
+      "totalTokensRange": [
+        4266,
+        4270
+      ]
+    }
+  ]
+}

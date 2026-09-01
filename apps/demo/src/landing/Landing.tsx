@@ -2,13 +2,29 @@ import { useAgentAction, useAgentState } from "@agentperf/react";
 import { z } from "zod";
 import { Race } from "./Race";
 
+const REPORTS = "https://github.com/N-45div/AgentPerf/blob/main/benchmarks";
+
 const MEDIANS = {
-  task: "book a salon slot (Fringe & Co. demo)",
   model: "gpt-5.6-luna",
-  runsPerLane: 3,
-  dom: { successRate: 1, wallClockS: 14.2, tokens: 10046, roundTrips: 8 },
-  tools: { successRate: 1, wallClockS: 5.5, tokens: 4240, roundTrips: 4 },
-  report: "https://github.com/N-45div/AgentPerf/blob/main/benchmarks/2026-08-31-booking-gpt-5.6-luna/report.md"
+  runsPerLane: 5,
+  measuredOn: "2026-09-01",
+  pages: {
+    salonBooking: {
+      accessibilityTreeChars: 1010,
+      dom: { successRate: 1, wallClockS: 7.5, tokens: 10079, roundTrips: 5 },
+      tools: { successRate: 1, wallClockS: 5.0, tokens: 4268, roundTrips: 4 },
+      report: `${REPORTS}/2026-09-01-booking-gpt-5.6-luna-fair-dom/report.md`
+    },
+    productCatalog: {
+      accessibilityTreeChars: 32916,
+      dom: { successRate: 1, wallClockS: 24.3, tokens: 102537, roundTrips: 7 },
+      tools: { successRate: 1, wallClockS: 6.0, tokens: 7434, roundTrips: 5 },
+      report: `${REPORTS}/2026-09-01-catalog-gpt-5.6-luna/report.md`
+    }
+  },
+  headline:
+    "The gap is a property of the page: 2.4x tokens on a 1,010-char page, 13.8x on a 32,916-char one.",
+  methodology: `${REPORTS}/METHODOLOGY.md`
 };
 
 /** Yes, the landing page speaks WebMCP too. */
@@ -27,11 +43,13 @@ function LandingAgentSurface() {
     execute: () => ({
       ...MEDIANS,
       caveats: [
-        "n=3 per lane",
-        "one small single-page app",
-        "one model",
-        "localhost serving — network latency not included",
-        "DOM baseline uses the accessibility tree, which is cheaper than screenshots — conservative in the DOM lane's favor"
+        "n=5 per lane, but trajectories repeat almost exactly — n=5 measures latency variance, not behavioral variance",
+        "two pages, two models, localhost serving",
+        "reasoning_effort 'none' on gpt-5.6 (a provider requirement for function tools), applied to both lanes",
+        "token counts are uncached prompt+completion totals; provider caching may reduce billed cost unequally across lanes",
+        "the pages' tools were written by the same person who wrote the tasks — third-party WebMCP pages are the next run",
+        "DOM baseline uses the accessibility tree (cheaper than screenshots) and has post-action page state, dropdown support and matched settle time, so it is not handicapped",
+        "corrected 2026-09-01: the launch run handicapped the DOM lane and overstated wall-clock as 2.6x; see METHODOLOGY.md"
       ]
     })
   });
@@ -79,42 +97,73 @@ export function Landing() {
             The claims everywhere — “10x faster, ~90% fewer tokens” — trace back to a
             methodology-free blog post and token-only counts from the ecosystem's own testing
             against screenshot baselines. Nobody had measured task completion: both lanes,
-            wall-clock included, success verified on the rendered page. We did — against the
-            cheaper accessibility-tree baseline, so 2.4x is the conservative number on a
-            deliberately small page. And DOM cost scales with page size; tool cost doesn't.
+            wall-clock included, success verified on the rendered page. We did — on two pages,
+            because the answer turns out to depend entirely on which page you ask about.
           </p>
           <table className="numbers-table">
             <thead>
               <tr>
+                <th>page</th>
+                <th>a11y tree</th>
                 <th>lane</th>
-                <th>success</th>
-                <th>median wall-clock</th>
-                <th>median tokens</th>
+                <th>wall-clock</th>
+                <th>tokens</th>
                 <th>round-trips</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>DOM driving (accessibility tree)</td>
-                <td>100% (3/3)</td>
-                <td><code>14.2s</code></td>
-                <td><code>10,046</code></td>
-                <td><code>8</code></td>
+                <td rowSpan={2}>salon booking</td>
+                <td rowSpan={2}><code>1,010 ch</code></td>
+                <td>DOM driving</td>
+                <td><code>7.5s</code></td>
+                <td><code>10,079</code></td>
+                <td><code>5</code></td>
               </tr>
               <tr>
-                <td>WebMCP tools (@agentperf/react)</td>
-                <td>100% (3/3)</td>
-                <td className="good"><code>5.5s</code></td>
-                <td className="good"><code>4,240</code></td>
+                <td>WebMCP tools</td>
+                <td className="good"><code>5.0s</code></td>
+                <td className="good"><code>4,268</code></td>
                 <td className="good"><code>4</code></td>
+              </tr>
+              <tr>
+                <td rowSpan={2}>product catalog</td>
+                <td rowSpan={2}><code>32,916 ch</code></td>
+                <td>DOM driving</td>
+                <td><code>24.3s</code></td>
+                <td><code>102,537</code></td>
+                <td><code>7</code></td>
+              </tr>
+              <tr>
+                <td>WebMCP tools</td>
+                <td className="good"><code>6.0s</code></td>
+                <td className="good"><code>7,434</code></td>
+                <td className="good"><code>5</code></td>
               </tr>
             </tbody>
           </table>
+          <p className="lead" style={{ marginTop: 18 }}>
+            <strong>2.4x tokens on the tiny page. 13.8x on the realistic one.</strong> Make the
+            page 32x heavier and DOM driving pays 10x more, while the tools lane barely moves —
+            it never reads the page, it asks. So a single number for “what does WebMCP save” is
+            meaningless without the page it was measured on, which is exactly why this ships as
+            a harness you point at your own site.
+          </p>
           <p className="caveats">
-            gpt-5.6-luna · booking task · n=3 per lane · localhost · success verified by the
-            harness against the rendered page, never claimed by the model · failed runs are
-            reported, not discarded (there were none) ·{" "}
-            <a href={MEDIANS.report}>full report &amp; per-run data</a>
+            gpt-5.6-luna · n=5 per lane · 100% success in every lane on both pages · localhost ·
+            success verified by the harness against the rendered page, never claimed by the
+            model · the DOM lane gets post-action page state, dropdown support and the same
+            settle time, so it is not handicapped ·{" "}
+            <a href={MEDIANS.pages.salonBooking.report}>booking report</a> ·{" "}
+            <a href={MEDIANS.pages.productCatalog.report}>catalog report</a>
+          </p>
+          <p className="caveats">
+            <strong>Correction, 1 Sep 2026:</strong> the launch numbers were 2.4x tokens and
+            2.6x wall-clock. An adversarial review of our own harness found the DOM lane was
+            handicapped — its actions returned no page state, forcing an extra round-trip each.
+            Fixed and re-run: the token ratio survived unchanged, the wall-clock claim did not
+            (2.6x → 1.5x). Every finding, including one where a dramatic result turned out to be
+            our own bug, is in <a href={MEDIANS.methodology}>METHODOLOGY.md</a>.
           </p>
         </div>
       </section>

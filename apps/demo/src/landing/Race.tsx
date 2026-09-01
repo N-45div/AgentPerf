@@ -1,12 +1,12 @@
 /**
  * The before/after race. Totals (tokens, wall-clock, round-trips) are the
- * measured medians from benchmarks/2026-08-31-booking-gpt-5.6-luna; the step
+ * measured medians from benchmarks/2026-09-01-catalog-gpt-5.6-luna; the step
  * sequences come from real run transcripts. Step *timing* is evenly spaced —
  * dramatization of pace, not of cost.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const SCALE = 0.4; // 1s real time = 0.4s animation
+const SCALE = 0.25; // 1s real time = 0.25s animation
 
 interface LaneSpec {
   key: "dom" | "tools";
@@ -23,37 +23,38 @@ const LANES: LaneSpec[] = [
   {
     key: "dom",
     title: "DOM driving",
-    tag: "how browser agents work today",
-    wallS: 14.2,
-    tokens: 10046,
-    turns: 8,
+    tag: "read the page, click, re-read",
+    wallS: 24.3,
+    tokens: 102537,
+    turns: 7,
     steps: [
-      "read_page — full accessibility tree",
-      'click "Beard trim"',
-      "read_page — the page changed, read it again",
-      'click slot "09-01 10:00"',
-      'fill "Your name" → Dana Smith',
-      'fill "Email" → dana@example.com',
-      'click "Book it"',
-      "read_page — hunt for the confirmation",
+      "read_page — 32,916 chars of catalog",
+      'fill search → "wireless keyboard"',
+      "…the whole page again, every read",
+      'select_option "Minimum rating" → 4.5+',
+      "…and again",
+      'click "Add Nimbus Air 75 to cart"',
+      "fill name / email, click Place order",
       "task_complete ✓"
     ],
-    verdict: "10,046 tokens · 14.2s · 8 round-trips"
+    verdict: "102,537 tokens · 24.3s · 7 round-trips"
   },
   {
     key: "tools",
     title: "WebMCP tools",
     tag: "@agentperf/react fast lane",
-    wallS: 5.5,
-    tokens: 4240,
-    turns: 4,
+    wallS: 6.0,
+    tokens: 7434,
+    turns: 5,
     steps: [
       "get_page_state — one budgeted snapshot",
-      'list_open_slots("beard")',
-      "book_slot(…) → FR-K3QZV",
+      'search_products({category:"keyboards",',
+      '  minRating:4.5, inStockOnly:true})',
+      "add_to_cart(kb-nimbus-air75) → $89.99",
+      "place_order(…) → NW-7YDSV",
       "task_complete ✓"
     ],
-    verdict: "4,240 tokens · 5.5s · 4 round-trips"
+    verdict: "7,434 tokens · 6.0s · 5 round-trips"
   }
 ];
 
@@ -150,8 +151,10 @@ export function Race() {
         <div className="race-head">
           <h2>Same page. Same model. Same task. Watch the bill.</h2>
           <p>
-            One agent books a salon slot twice: driving the DOM the way browser agents do today,
-            and calling the page's own WebMCP tools. Totals are measured medians, replayed at 2.5x.
+            One agent buys the cheapest in-stock wireless keyboard rated 4.5+ from a 72-product
+            store, twice: driving the DOM with a full accessibility-tree driver, and calling the
+            page's own WebMCP tools. Both succeed every time. Totals are measured medians (n=5),
+            replayed at 4x.
           </p>
         </div>
         <div className="race">
@@ -160,10 +163,10 @@ export function Race() {
           ))}
         </div>
         <p className={`big-verdict${done ? " on" : ""}`}>
-          Tools lane: <span>2.4x fewer tokens, 2.6x faster</span> — 100% success in both lanes.
+          Tools lane: <span>13.8x fewer tokens, 4x faster</span> — 100% success in both lanes.
         </p>
         <p className="race-foot">
-          Step sequences from real run transcripts; totals are measured medians (n=3).
+          Step sequences from real run transcripts; totals are measured medians (n=5).
           <button type="button" className="replay" onClick={play}>
             ↻ Replay
           </button>

@@ -23,44 +23,66 @@ and the React layer that makes the fast lane an afternoon of work.
 
 ## The numbers
 
-Same page, same task (book a salon slot), same harness-verified success check
-— the only variable is how the agent touches the page. Two model families,
-n=3 per lane:
+Same page, same task, same harness-verified success check — the only variable
+is how the agent touches the page. `gpt-5.6-luna`, n=5 per lane, both lanes
+100% successful on both pages:
 
-| model | lane | success | median wall-clock | median tokens | round-trips |
-|-------|------|---------|-------------------|---------------|-------------|
-| gpt-5.6-luna | DOM driving | 100% (3/3) | 14.2s | 10,046 | 8 |
-| gpt-5.6-luna | **WebMCP tools** | 100% (3/3) | **5.5s** | **4,240** | **4** |
-| claude-sonnet-5 | DOM driving | 100% (3/3) | 25.1s | 21,134 | 8 |
-| claude-sonnet-5 | **WebMCP tools** | 100% (3/3) | **16.1s** | **8,495** | **4** |
+| page | accessibility tree | lane | median wall-clock | median tokens | round-trips |
+|------|--------------------|------|-------------------|---------------|-------------|
+| salon booking | 1,010 chars | DOM driving | 7.5s | 10,079 | 5 |
+| salon booking | | **WebMCP tools** | **5.0s** | **4,268** | **4** |
+| product catalog | 32,916 chars | DOM driving | 24.3s | 102,537 | 7 |
+| product catalog | | **WebMCP tools** | **6.0s** | **7,434** | **5** |
 
-The token multiplier replicates across model families — **2.4x and 2.5x** —
-and the round-trip counts are *identical* (8 vs 4), which says the structural
-saving is a property of the interface, not of the model. Wall-clock is the
-environment-dependent one (2.6x and 1.6x): it moves with provider latency, so
-treat tokens and round-trips as the robust numbers.
+**The gap is a property of the page, not of WebMCP: 2.4x tokens on a tiny
+page, 13.8x on a realistic one.** Make the page 32x heavier and the DOM lane
+pays 10x more while the tools lane barely moves (4,268 → 7,434) — it never
+reads the page, it asks. Wall-clock follows: 1.5x on the small page, 4.0x on
+the heavy one.
 
-**DOM driving paid 2.4x the tokens and 2.6x the wall-clock — not the "10x
-faster, ~90% fewer tokens" repeated across the WebMCP ecosystem.** Trace those
-numbers and you find a methodology-free blog post (the 10x), and token-only
-counts from the ecosystem's own testing against *screenshot* baselines —
-Google's early figures, and MCP-B creator Alex Nahas's [CDP-server
+That is the whole argument for measuring instead of quoting a headline. **A
+single number for "how much does WebMCP save" is meaningless without the page
+it was measured on** — which is why this ships as a harness you point at your
+own site, not just as a result.
+
+The saving also replicates across model families. On the small page,
+`claude-sonnet-5` (via OpenRouter, no vendor-specific workarounds) pays 2.5x
+the tokens with the same round-trip counts — the earlier run is in
+[`benchmarks/`](benchmarks/).
+
+> **Correction, 1 Sep 2026.** The launch numbers were 2.4x tokens and 2.6x
+> wall-clock. An adversarial review of our own harness found the DOM lane was
+> handicapped — its actions returned no page state, forcing an extra
+> round-trip each — so its round-trips were inflated 8 vs 5. Fixed and re-run:
+> the **token ratio survived unchanged (2.36x)**, the **wall-clock claim did
+> not (2.6x → 1.5x)**. Every finding, including one where a dramatic result
+> turned out to be our own bug, is written up in
+> [`benchmarks/METHODOLOGY.md`](benchmarks/METHODOLOGY.md).
+
+### Why measure at all
+
+The claims in circulation — *"10x faster, ~90% fewer tokens"* — trace to a
+methodology-free blog post (the 10x), and to token-only counts from the
+ecosystem's own testing against *screenshot* baselines: Google's early
+figures, and MCP-B creator Alex Nahas's [CDP-server
 benchmark](https://github.com/WebMCP-org/chrome-devtools-quickstart), which
-honestly notes that speed is "harder to measure." Nobody had measured **task
-completion**: both lanes, wall-clock included, success verified on the
-rendered page, failures counted. That's what AgentPerf does — against the far
-cheaper accessibility-tree baseline, so ~2.4x is the conservative number on a
-deliberately small page.
+honestly notes that speed is "harder to measure."
 
-And it *is* a small page: the salon app's entire accessibility tree is 1,010
-characters — about 253 tokens per `read_page`. So almost none of that 2.4x
-came from reading the page; it came from needing twice the round-trips, each
-one resending a growing conversation. That's the floor of this effect, not
-the ceiling — on a page whose tree costs thousands of tokens to read, the DOM
-lane pays that on *every* read. Measuring exactly that is the next row. Full report and per-run data in
-[`benchmarks/`](benchmarks/2026-08-31-booking-gpt-5.6-luna/report.md). Caveats
-we know about: n=3, one small SPA, one model, localhost. Heavier pages and
-more models are next.
+Nobody had measured **task completion**: both lanes, wall-clock included,
+success verified on the rendered page, failures counted. That's what this
+does — against the far cheaper accessibility-tree baseline, and against a DOM
+lane given the capabilities a real driver has: post-action page state,
+dropdown support, matched settle time, structurally parallel prompts. Where a
+choice could flatter the tools lane, it was made the other way.
+
+Known limits, in full: two pages, two models, localhost, n=5 with
+near-identical trajectories per run (so n=5 measures latency variance, not
+behavioral variance), `reasoning_effort: "none"` on `gpt-5.6` (a provider
+requirement, applied to both lanes), uncached token counts, and tools written
+by the same person who wrote the tasks. All of it, plus the two times a result
+turned out to be our own bug, is in
+[`METHODOLOGY.md`](benchmarks/METHODOLOGY.md). Third-party WebMCP pages are
+the priority for the next run.
 
 ## Quick start — give your app the fast lane
 
@@ -108,12 +130,21 @@ by the model. Failed runs are reported, not discarded. Options:
 ## Try it in two minutes
 
 Open **https://agentperf-demo.vercel.app** — the race on the landing page is
-the measured median run, replayed. Then open
-[`/demo/`](https://agentperf-demo.vercel.app/demo/) in Chrome 149+ with
-`chrome://flags/#enable-webmcp-testing` (or the ChatGPT desktop browser) and
-tell your agent: *"book me a beard trim tomorrow."* The dock reads **"5 tools
-live"**; the booking your agent makes shows up in the UI as it works. Even the
-landing page speaks WebMCP — ask your agent for `get_benchmark_results`.
+the measured median run, replayed. Then open one of the two demo pages in
+Chrome 149+ with `chrome://flags/#enable-webmcp-testing`, or in the ChatGPT
+desktop browser:
+
+- [`/demo/`](https://agentperf-demo.vercel.app/demo/) — the salon. Say *"book
+  me a beard trim tomorrow."* The dock reads **"5 tools live"** and the
+  booking appears in the UI as the agent works.
+- [`/catalog/`](https://agentperf-demo.vercel.app/catalog/) — the 72-product
+  store, the heavy page from the table above. Say *"find me the cheapest
+  in-stock wireless keyboard rated 4.5 or better and order it."* Your agent
+  answers in about 7,000 tokens; driving the same page by DOM costs 102,000.
+
+Even the landing page speaks WebMCP — ask your agent for
+`get_benchmark_results` and it returns these numbers with the caveats
+attached.
 
 ## How it works
 
@@ -135,8 +166,8 @@ landing page speaks WebMCP — ask your agent for `get_benchmark_results`.
 
 - [`packages/react`](packages/react) — `@agentperf/react`
 - [`packages/harness`](packages/harness) — the `agentperf` CLI
-- [`apps/demo`](apps/demo) — the landing page + Fringe & Co. demo app
-- [`benchmarks/`](benchmarks/) — published reports, per-run data included
+- [`apps/demo`](apps/demo) — landing page, Fringe & Co. salon app, Northwind catalog
+- [`benchmarks/`](benchmarks/) — published reports with per-run data, and [METHODOLOGY.md](benchmarks/METHODOLOGY.md): the adversarial review of this harness and what it changed
 
 ## Roadmap
 

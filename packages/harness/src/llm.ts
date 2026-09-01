@@ -33,7 +33,36 @@ export interface AssistantTurn {
 
 export type ChatMessage = Record<string, unknown>;
 
+const RETRY_STATUSES = new Set([429, 500, 502, 503, 504]);
+const MAX_ATTEMPTS = 5;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Rate limits are a property of the account, not of the lane under test —
+ * letting them fail a run would silently bias whichever lane is more
+ * token-hungry, which is the lane the benchmark exists to measure.
+ */
 export async function chat(
+  config: LlmConfig,
+  messages: ChatMessage[],
+  tools: LlmToolDef[]
+): Promise<AssistantTurn> {
+  let lastError = "";
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      return await chatOnce(config, messages, tools);
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+      const status = Number(/\((\d{3})\)/.exec(lastError)?.[1]);
+      if (!RETRY_STATUSES.has(status) || attempt === MAX_ATTEMPTS) throw error;
+      await sleep(2000 * 2 ** (attempt - 1));
+    }
+  }
+  throw new Error(lastError);
+}
+
+async function chatOnce(
   config: LlmConfig,
   messages: ChatMessage[],
   tools: LlmToolDef[]

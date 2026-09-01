@@ -1,0 +1,6 @@
+{
+  "id": "catalog-checkout",
+  "prompt": "You are on the Northwind Supply catalog page, which sells 72 desk-hardware products. Find the cheapest wireless keyboard that is in stock and rated 4.5 or higher — sold-out products do not count, and wired keyboards do not count. Add exactly one of it to the cart, place the order for Dana Smith (dana@example.com), and report the order number the page shows.",
+  "successPattern": "Order NW-[A-Z0-9]{5} confirmed: 1 x Nimbus Air 75, total \\$89\\.99",
+  "maxTurns": 24
+}

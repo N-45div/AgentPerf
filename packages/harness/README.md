@@ -26,10 +26,17 @@ round-trips, actions, success rate — as a markdown table and JSON under
 
 Options: `--lane both|tools|dom` · `--runs N` · `--model <id>` (default
 `gpt-5.6-luna`) · `--base-url <url>` for compatible providers · `--task
-booking|path/to/task.json` · `--max-turns N` · `--out dir`. A task file is
-`{ id, prompt, successPattern, maxTurns }` — the prompt is handed to both
-lanes verbatim and `successPattern` is a regex the page's visible text must
-match when the task is truly done.
+booking|path/to/task.json` · `--max-turns N` · `--max-snapshot-chars N` ·
+`--out dir`. A task file is `{ id, prompt, successPattern, maxTurns }` — the
+prompt is handed to both lanes verbatim and `successPattern` is a regex the
+page's visible text must match when the task is truly done.
+
+`--max-snapshot-chars` caps the accessibility snapshot the DOM lane receives
+per `read_page`. It defaults to 120,000 — deliberately generous, so a heavy
+page reaches the DOM agent whole and it pays for the page in tokens instead
+of being handicapped by truncation. Runs that still hit the cap are flagged
+in the report, because their measured cost is a floor rather than the real
+number.
 
 Instrument your app with [`@agentperf/react`](https://www.npmjs.com/package/@agentperf/react)
 to give it the tools lane.

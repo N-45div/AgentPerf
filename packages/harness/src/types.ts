@@ -13,10 +13,21 @@ export interface TaskSpec {
   maxTurns: number;
 }
 
+export interface LaneOptions {
+  /**
+   * Cap on the accessibility snapshot handed to the DOM lane per `read_page`.
+   * Set it high enough that the page is never truncated: a truncated snapshot
+   * handicaps the DOM lane instead of letting it pay honestly in tokens.
+   */
+  maxSnapshotChars?: number;
+}
+
 export interface RunMetrics {
   lane: Lane;
   taskId: string;
   success: boolean;
+  /** Set when the DOM lane's snapshot hit the cap — the run is then a floor, not a measurement. */
+  snapshotTruncated?: boolean;
   /** Why a run failed, when it did. */
   failure?: string;
   wallClockMs: number;

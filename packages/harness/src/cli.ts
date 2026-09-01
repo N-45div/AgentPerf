@@ -8,9 +8,9 @@
  * /chat/completions endpoint works via --base-url.
  */
 import { readFileSync } from "node:fs";
-import { runDomLane, runToolsLane } from "./lanes";
+import { DEFAULT_MAX_SNAPSHOT_CHARS, runDomLane, runToolsLane } from "./lanes";
 import { aggregate, toMarkdown, writeReport } from "./report";
-import type { BenchmarkReport, Lane, RunMetrics, TaskSpec } from "./types";
+import type { BenchmarkReport, Lane, LaneOptions, RunMetrics, TaskSpec } from "./types";
 
 const BUILTIN_TASKS: Record<string, TaskSpec> = {
   booking: {
@@ -56,6 +56,9 @@ async function main(): Promise<void> {
   const lanes: Lane[] = laneArg === "both" ? ["dom", "tools"] : [laneArg as Lane];
   const runs = Number(arg("runs", "3"));
   const outDir = arg("out", "results")!;
+  const laneOptions: LaneOptions = {
+    maxSnapshotChars: Number(arg("max-snapshot-chars", String(DEFAULT_MAX_SNAPSHOT_CHARS)))
+  };
 
   console.log(`AgentPerf — ${task.id} @ ${url}`);
   console.log(`model ${llm.model}, ${runs} run(s) per lane: ${lanes.join(", ")}\n`);
@@ -72,11 +75,15 @@ async function main(): Promise<void> {
     const results: RunMetrics[] = [];
     for (let i = 1; i <= runs; i++) {
       process.stdout.write(`[${lane}] run ${i}/${runs}… `);
-      const result = lane === "tools" ? await runToolsLane(url, task, llm) : await runDomLane(url, task, llm);
+      const result =
+        lane === "tools"
+          ? await runToolsLane(url, task, llm)
+          : await runDomLane(url, task, llm, laneOptions);
       results.push(result);
       console.log(
         result.success
-          ? `✓ ${(result.wallClockMs / 1000).toFixed(1)}s, ${result.totalTokens} tokens, ${result.turns} turns`
+          ? `✓ ${(result.wallClockMs / 1000).toFixed(1)}s, ${result.totalTokens} tokens, ` +
+              `${result.turns} turns${result.snapshotTruncated ? " (snapshot truncated — cost is a floor)" : ""}`
           : `✗ ${result.failure}`
       );
     }

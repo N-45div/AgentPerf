@@ -11,7 +11,7 @@ import { chromium, type Page } from "playwright";
 import { runAgentLoop } from "./agent-loop";
 import type { LlmConfig, LlmToolDef } from "./llm";
 import { HOST_SHIM } from "./shim";
-import type { Lane, RunMetrics, TaskSpec } from "./types";
+import type { Lane, LaneOptions, RunMetrics, TaskSpec } from "./types";
 
 declare global {
   interface Window {
@@ -164,9 +164,21 @@ const DOM_TOOLS: LlmToolDef[] = [
   }
 ];
 
-const MAX_SNAPSHOT_CHARS = 24000;
+/**
+ * Deliberately generous: a heavy page must reach the DOM lane whole, so it
+ * pays for the page in tokens rather than being handicapped by truncation.
+ * Runs that still hit the cap are flagged — their cost is a floor, not a
+ * measurement.
+ */
+export const DEFAULT_MAX_SNAPSHOT_CHARS = 120000;
 
-export async function runDomLane(url: string, task: TaskSpec, llm: LlmConfig): Promise<RunMetrics> {
+export async function runDomLane(
+  url: string,
+  task: TaskSpec,
+  llm: LlmConfig,
+  options: LaneOptions = {}
+): Promise<RunMetrics> {
+  const maxSnapshotChars = options.maxSnapshotChars ?? DEFAULT_MAX_SNAPSHOT_CHARS;
   const browser = await chromium.launch();
   const run = metrics("dom", task);
   const startedMs = performance.now();
@@ -196,9 +208,9 @@ export async function runDomLane(url: string, task: TaskSpec, llm: LlmConfig): P
         switch (name) {
           case "read_page": {
             const snapshot = await page.locator("body").ariaSnapshot();
-            return snapshot.length > MAX_SNAPSHOT_CHARS
-              ? snapshot.slice(0, MAX_SNAPSHOT_CHARS) + "\n… (truncated)"
-              : snapshot;
+            if (snapshot.length <= maxSnapshotChars) return snapshot;
+            run.snapshotTruncated = true;
+            return snapshot.slice(0, maxSnapshotChars) + "\n… (truncated)";
           }
           case "click": {
             await target(args.role, args.name).click({ timeout: 5000 });

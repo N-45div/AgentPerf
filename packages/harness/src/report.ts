@@ -9,19 +9,45 @@ function median(values: number[]): number {
   return sorted.length % 2 === 1 ? sorted[mid]! : Math.round((sorted[mid - 1]! + sorted[mid]!) / 2);
 }
 
+function mean(values: number[]): number {
+  if (values.length === 0) return 0;
+  return Math.round(values.reduce((sum, v) => sum + v, 0) / values.length);
+}
+
+function range(values: number[]): [number, number] {
+  if (values.length === 0) return [0, 0];
+  return [Math.min(...values), Math.max(...values)];
+}
+
+/**
+ * Central tendencies are computed over successful runs only. A crashed run
+ * records near-zero cost, and averaging that in would drag a lane's reported
+ * cost toward zero — understating exactly the lane that failed.
+ */
 export function aggregate(lane: Lane, runs: RunMetrics[]): LaneAggregate {
+  const ok = runs.filter((r) => r.success);
+  const wall = ok.map((r) => r.wallClockMs);
+  const tokens = ok.map((r) => r.totalTokens);
   return {
     lane,
     runs,
-    successRate: runs.length === 0 ? 0 : runs.filter((r) => r.success).length / runs.length,
-    medianWallClockMs: median(runs.map((r) => r.wallClockMs)),
-    medianTotalTokens: median(runs.map((r) => r.totalTokens)),
-    medianTurns: median(runs.map((r) => r.turns))
+    successRate: runs.length === 0 ? 0 : ok.length / runs.length,
+    medianWallClockMs: median(wall),
+    medianTotalTokens: median(tokens),
+    medianTurns: median(ok.map((r) => r.turns)),
+    meanWallClockMs: mean(wall),
+    meanTotalTokens: mean(tokens),
+    wallClockRangeMs: range(wall),
+    totalTokensRange: range(tokens)
   };
 }
 
 function seconds(ms: number): string {
   return (ms / 1000).toFixed(1) + "s";
+}
+
+function ratio(dom: number, tools: number): string {
+  return tools > 0 ? (dom / tools).toFixed(2) + "x" : "n/a";
 }
 
 export function toMarkdown(report: BenchmarkReport): string {
@@ -33,32 +59,55 @@ export function toMarkdown(report: BenchmarkReport): string {
     `- **Task:** ${report.task.prompt}`,
     `- **Started:** ${report.startedAt}`,
     "",
-    "| lane | success | median wall-clock | median tokens | median round-trips |",
-    "|------|---------|-------------------|---------------|--------------------|"
+    "| lane | success | median wall-clock | mean wall-clock | median tokens | mean tokens | round-trips |",
+    "|------|---------|-------------------|-----------------|---------------|-------------|-------------|"
   ];
   for (const lane of report.lanes) {
-    const success = `${Math.round(lane.successRate * 100)}% (${lane.runs.filter((r) => r.success).length}/${lane.runs.length})`;
+    const passed = lane.runs.filter((r) => r.success).length;
     lines.push(
-      `| ${lane.lane} | ${success} | ${seconds(lane.medianWallClockMs)} | ${lane.medianTotalTokens.toLocaleString()} | ${lane.medianTurns} |`
+      `| ${lane.lane} | ${Math.round(lane.successRate * 100)}% (${passed}/${lane.runs.length}) | ` +
+        `${seconds(lane.medianWallClockMs)} | ${seconds(lane.meanWallClockMs)} | ` +
+        `${lane.medianTotalTokens.toLocaleString()} | ${lane.meanTotalTokens.toLocaleString()} | ${lane.medianTurns} |`
     );
   }
+
   const tools = report.lanes.find((l) => l.lane === "tools");
   const dom = report.lanes.find((l) => l.lane === "dom");
-  if (tools && dom && tools.medianTotalTokens > 0 && tools.medianWallClockMs > 0) {
+  if (tools && dom && tools.medianTotalTokens > 0) {
     lines.push(
       "",
-      `**DOM lane pays ${(dom.medianTotalTokens / tools.medianTotalTokens).toFixed(1)}x the tokens ` +
-        `and ${(dom.medianWallClockMs / tools.medianWallClockMs).toFixed(1)}x the wall-clock of the tools lane** ` +
-        `(medians; failed runs included in success rate, excluded from nothing).`
+      `**DOM vs tools — tokens ${ratio(dom.medianTotalTokens, tools.medianTotalTokens)} (median) / ` +
+        `${ratio(dom.meanTotalTokens, tools.meanTotalTokens)} (mean); ` +
+        `wall-clock ${ratio(dom.medianWallClockMs, tools.medianWallClockMs)} (median) / ` +
+        `${ratio(dom.meanWallClockMs, tools.meanWallClockMs)} (mean); ` +
+        `round-trips ${dom.medianTurns} vs ${tools.medianTurns}.**`,
+      "",
+      `Spread — DOM ${seconds(dom.wallClockRangeMs[0])}–${seconds(dom.wallClockRangeMs[1])}, ` +
+        `${dom.totalTokensRange[0].toLocaleString()}–${dom.totalTokensRange[1].toLocaleString()} tokens; ` +
+        `tools ${seconds(tools.wallClockRangeMs[0])}–${seconds(tools.wallClockRangeMs[1])}, ` +
+        `${tools.totalTokensRange[0].toLocaleString()}–${tools.totalTokensRange[1].toLocaleString()} tokens.`,
+      "",
+      "Central tendencies are over successful runs only; failures are counted in the success rate. " +
+        "Token counts are uncached prompt+completion totals as the API reports them — provider " +
+        "prompt caching may reduce billed cost, and does so unequally across lanes."
     );
   }
+
   lines.push("", "## Runs", "");
-  lines.push("| lane | # | success | wall-clock | tokens | round-trips | actions | failure |");
-  lines.push("|------|---|---------|------------|--------|-------------|---------|---------|");
+  lines.push("| lane | # | success | wall-clock | tokens | round-trips | actions | notes |");
+  lines.push("|------|---|---------|------------|--------|-------------|---------|-------|");
   for (const lane of report.lanes) {
     lane.runs.forEach((r, i) => {
+      const notes = [
+        r.failure,
+        r.snapshotTruncated ? "snapshot truncated — cost is a floor" : "",
+        r.claimSummary ? `claim: ${r.claimSummary.slice(0, 90)}` : ""
+      ]
+        .filter(Boolean)
+        .join("; ");
       lines.push(
-        `| ${r.lane} | ${i + 1} | ${r.success ? "✓" : "✗"} | ${seconds(r.wallClockMs)} | ${r.totalTokens.toLocaleString()} | ${r.turns} | ${r.actions} | ${r.failure ?? ""} |`
+        `| ${r.lane} | ${i + 1} | ${r.success ? "✓" : "✗"} | ${seconds(r.wallClockMs)} | ` +
+          `${r.totalTokens.toLocaleString()} | ${r.turns} | ${r.actions} | ${notes} |`
       );
     });
   }

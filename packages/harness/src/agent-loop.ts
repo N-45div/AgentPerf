@@ -27,21 +27,9 @@ const TASK_COMPLETE: LlmToolDef = {
   }
 };
 
-export async function runAgentLoop(options: {
-  llm: LlmConfig;
-  systemPrompt: string;
-  taskPrompt: string;
-  tools: LlmToolDef[];
-  invoke: (name: string, args: Record<string, unknown>) => Promise<string>;
-  maxTurns: number;
-}): Promise<LoopOutcome> {
-  const messages: ChatMessage[] = [
-    { role: "system", content: options.systemPrompt },
-    { role: "user", content: options.taskPrompt }
-  ];
-  const tools = [...options.tools, TASK_COMPLETE];
-
-  const outcome: LoopOutcome = {
+/** Fresh, zeroed outcome. Callers hold a reference so partial spend survives a throw. */
+export function newLoopOutcome(): LoopOutcome {
+  return {
     turns: 0,
     actions: 0,
     promptTokens: 0,
@@ -49,6 +37,25 @@ export async function runAgentLoop(options: {
     claimedDone: false,
     claimSummary: ""
   };
+}
+
+export async function runAgentLoop(
+  options: {
+    llm: LlmConfig;
+    systemPrompt: string;
+    taskPrompt: string;
+    tools: LlmToolDef[];
+    invoke: (name: string, args: Record<string, unknown>) => Promise<string>;
+    maxTurns: number;
+  },
+  outcome: LoopOutcome = newLoopOutcome()
+): Promise<LoopOutcome> {
+  const messages: ChatMessage[] = [
+    { role: "system", content: options.systemPrompt },
+    { role: "user", content: options.taskPrompt }
+  ];
+  const tools = [...options.tools, TASK_COMPLETE];
+
   let nudged = false;
 
   while (outcome.turns < options.maxTurns) {

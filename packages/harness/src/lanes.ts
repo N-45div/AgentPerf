@@ -2,13 +2,18 @@
  * The two lanes. Same browser, same model, same loop, same task, same
  * verification — the only variable is how the agent touches the page:
  *   tools lane — calls the page's own WebMCP tools (host shim injected).
- *   dom lane   — reads the accessibility tree and clicks/types, the way
- *                browser-driving agents work today. Text-based a11y driving
- *                is CHEAPER than screenshot driving, so the baseline is
- *                conservative: real DOM agents pay more than we report.
+ *   dom lane   — reads the accessibility tree and clicks/types.
+ *
+ * The DOM lane returns the post-action accessibility snapshot ATTACHED to
+ * every click/fill result, the way real a11y drivers (Playwright MCP, Chrome
+ * DevTools MCP, browser-use) do. An earlier version returned only "Clicked X"
+ * and told the agent to re-read, which forced a second round-trip per action
+ * and roughly doubled this lane's turns — a handicap, not a baseline. Both
+ * lanes now get the same settle time and structurally parallel prompts, so
+ * neither is charged for something the other gets free.
  */
 import { chromium, type Page } from "playwright";
-import { runAgentLoop } from "./agent-loop";
+import { newLoopOutcome, runAgentLoop, type LoopOutcome } from "./agent-loop";
 import type { LlmConfig, LlmToolDef } from "./llm";
 import { HOST_SHIM } from "./shim";
 import type { Lane, LaneOptions, RunMetrics, TaskSpec } from "./types";
@@ -29,9 +34,22 @@ declare global {
   }
 }
 
-async function verify(page: Page, task: TaskSpec): Promise<boolean> {
+async function matchesSuccess(page: Page, task: TaskSpec): Promise<boolean> {
   const text = await page.evaluate(() => document.body.innerText);
   return new RegExp(task.successPattern).test(text);
+}
+
+/**
+ * A success pattern that already matches before the agent acts would score
+ * every run a pass. Treat that as a broken task, not a result.
+ */
+async function assertNotAlreadySatisfied(page: Page, task: TaskSpec): Promise<void> {
+  if (await matchesSuccess(page, task)) {
+    throw new Error(
+      `successPattern /${task.successPattern}/ already matches the page before the agent acted — ` +
+        `the task cannot be verified against this URL`
+    );
+  }
 }
 
 function metrics(lane: Lane, task: TaskSpec): RunMetrics {
@@ -51,9 +69,10 @@ function metrics(lane: Lane, task: TaskSpec): RunMetrics {
 function finish(
   run: RunMetrics,
   startedMs: number,
-  loop: { turns: number; actions: number; promptTokens: number; completionTokens: number; failure?: string },
+  loop: LoopOutcome,
   verified: boolean,
-  claimedDone: boolean
+  claimedDone: boolean,
+  override: { failure?: string } = {}
 ): RunMetrics {
   run.wallClockMs = Math.round(performance.now() - startedMs);
   run.turns = loop.turns;
@@ -62,8 +81,10 @@ function finish(
   run.completionTokens = loop.completionTokens;
   run.totalTokens = loop.promptTokens + loop.completionTokens;
   run.success = verified;
+  run.claimSummary = loop.claimSummary || undefined;
   if (!verified) {
     run.failure =
+      override.failure ??
       loop.failure ??
       (claimedDone
         ? "model claimed completion but the page does not show the expected outcome"
@@ -79,12 +100,14 @@ export async function runToolsLane(
 ): Promise<RunMetrics> {
   const browser = await chromium.launch();
   const run = metrics("tools", task);
+  const outcome = newLoopOutcome();
   const startedMs = performance.now();
   try {
     const context = await browser.newContext();
     await context.addInitScript(HOST_SHIM);
     const page = await context.newPage();
     await page.goto(url, { waitUntil: "load" });
+    await assertNotAlreadySatisfied(page, task);
     await page.waitForFunction(() => window.__agentperf?.listTools().length > 0, undefined, {
       timeout: 15000
     });
@@ -101,7 +124,7 @@ export async function runToolsLane(
       systemPrompt:
         "You complete tasks on a web page through the page's own tools (WebMCP). " +
         "Call get_page_state first to orient when it exists. Use only the tools. " +
-        "When the task is fully done, call task_complete.",
+        "Every action returns the updated result. When the task is fully done, call task_complete.",
       taskPrompt: task.prompt,
       tools,
       maxTurns: task.maxTurns,
@@ -114,17 +137,19 @@ export async function runToolsLane(
             ),
           [name, args] as const
         );
+        await page.waitForTimeout(SETTLE_MS);
         const text = result.content.map((c) => c.text).join("\n");
         return result.isError ? `TOOL ERROR:\n${text}` : text;
       }
-    });
+    }, outcome);
 
-    const verified = loop.claimedDone && (await verify(page, task));
+    const verified = loop.claimedDone && (await matchesSuccess(page, task));
     return finish(run, startedMs, loop, verified, loop.claimedDone);
   } catch (error) {
-    run.wallClockMs = Math.round(performance.now() - startedMs);
-    run.failure = error instanceof Error ? error.message : String(error);
-    return run;
+    // Report what the run actually spent before it broke, never a silent zero.
+    return finish(run, startedMs, outcome, false, outcome.claimedDone, {
+      failure: error instanceof Error ? error.message : String(error)
+    });
   } finally {
     await browser.close();
   }
@@ -133,13 +158,13 @@ export async function runToolsLane(
 const DOM_TOOLS: LlmToolDef[] = [
   {
     name: "read_page",
-    description:
-      "Read the page's current accessibility tree (roles and names). Call after every action that changes the page.",
+    description: "Read the page's current accessibility tree (roles and names).",
     parameters: { type: "object", properties: {} }
   },
   {
     name: "click",
-    description: "Click the element with this ARIA role and accessible name.",
+    description:
+      "Click the element with this ARIA role and accessible name. Returns the updated page.",
     parameters: {
       type: "object",
       properties: {
@@ -151,7 +176,9 @@ const DOM_TOOLS: LlmToolDef[] = [
   },
   {
     name: "fill",
-    description: "Type a value into the input with this ARIA role and accessible name (replaces content).",
+    description:
+      "Type a value into the input with this ARIA role and accessible name (replaces content). " +
+      "Returns the updated page.",
     parameters: {
       type: "object",
       properties: {
@@ -172,6 +199,9 @@ const DOM_TOOLS: LlmToolDef[] = [
  */
 export const DEFAULT_MAX_SNAPSHOT_CHARS = 120000;
 
+/** Post-action settle, applied identically in both lanes so neither pays for it alone. */
+const SETTLE_MS = 150;
+
 export async function runDomLane(
   url: string,
   task: TaskSpec,
@@ -181,11 +211,13 @@ export async function runDomLane(
   const maxSnapshotChars = options.maxSnapshotChars ?? DEFAULT_MAX_SNAPSHOT_CHARS;
   const browser = await chromium.launch();
   const run = metrics("dom", task);
+  const outcome = newLoopOutcome();
   const startedMs = performance.now();
   try {
     const context = await browser.newContext();
     const page = await context.newPage();
     await page.goto(url, { waitUntil: "load" });
+    await assertNotAlreadySatisfied(page, task);
 
     const target = (role: unknown, name: unknown) =>
       page
@@ -200,39 +232,43 @@ export async function runDomLane(
       systemPrompt:
         "You complete tasks on a web page the way a browser-driving agent does: read the " +
         "accessibility tree with read_page, then click and fill elements by role and name. " +
-        "Re-read the page after actions that change it. When the task is fully done, call task_complete.",
+        "Every action returns the updated page. When the task is fully done, call task_complete.",
       taskPrompt: task.prompt,
       tools: DOM_TOOLS,
       maxTurns: task.maxTurns,
       invoke: async (name, args) => {
+        const snapshot = async () => {
+          const text = await page.locator("body").ariaSnapshot();
+          if (text.length <= maxSnapshotChars) return text;
+          run.snapshotTruncated = true;
+          return text.slice(0, maxSnapshotChars) + "\n… (truncated)";
+        };
         switch (name) {
-          case "read_page": {
-            const snapshot = await page.locator("body").ariaSnapshot();
-            if (snapshot.length <= maxSnapshotChars) return snapshot;
-            run.snapshotTruncated = true;
-            return snapshot.slice(0, maxSnapshotChars) + "\n… (truncated)";
-          }
+          case "read_page":
+            return snapshot();
           case "click": {
             await target(args.role, args.name).click({ timeout: 5000 });
-            await page.waitForTimeout(250);
-            return `Clicked ${String(args.role)} "${String(args.name)}".`;
+            await page.waitForTimeout(SETTLE_MS);
+            return `Clicked ${String(args.role)} "${String(args.name)}".\n\n${await snapshot()}`;
           }
           case "fill": {
             await target(args.role, args.name).fill(String(args.value ?? ""), { timeout: 5000 });
-            return `Filled ${String(args.role)} "${String(args.name)}".`;
+            await page.waitForTimeout(SETTLE_MS);
+            return `Filled ${String(args.role)} "${String(args.name)}".\n\n${await snapshot()}`;
           }
           default:
             return `ACTION FAILED: unknown action "${name}"`;
         }
       }
-    });
+    }, outcome);
 
-    const verified = loop.claimedDone && (await verify(page, task));
+    const verified = loop.claimedDone && (await matchesSuccess(page, task));
     return finish(run, startedMs, loop, verified, loop.claimedDone);
   } catch (error) {
-    run.wallClockMs = Math.round(performance.now() - startedMs);
-    run.failure = error instanceof Error ? error.message : String(error);
-    return run;
+    // Report what the run actually spent before it broke, never a silent zero.
+    return finish(run, startedMs, outcome, false, outcome.claimedDone, {
+      failure: error instanceof Error ? error.message : String(error)
+    });
   } finally {
     await browser.close();
   }

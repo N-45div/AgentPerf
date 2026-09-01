@@ -138,10 +138,18 @@ export default function App() {
         <p>Desk hardware, shipped from Leeds. Humans browse the grid; agents call the tools.</p>
         <p className="numbers">
           The <strong>heavy page</strong> in the AgentPerf benchmark: {PRODUCTS.length} products
-          across {CATEGORIES.length} categories, all rendered. Driving this page by DOM means
-          reading every card; calling its WebMCP tools costs the same as it does on a small page.{" "}
-          <a href="https://github.com/N-45div/AgentPerf" target="_blank" rel="noreferrer">
-            Harness &amp; full report
+          across {CATEGORIES.length} categories, all rendered — a 32,916-character
+          accessibility tree. Measured 1 Sep 2026 (n=5, both lanes 100%): buying the cheapest
+          qualifying keyboard cost <strong>7,434 tokens through these tools</strong> and{" "}
+          <strong>102,537 by DOM driving</strong> — <strong>13.8x</strong>. On the{" "}
+          <a href="../demo/">small salon page</a> the same comparison is only 2.4x, which is
+          the point: the gap belongs to the page, not to WebMCP.{" "}
+          <a
+            href="https://github.com/N-45div/AgentPerf/blob/main/benchmarks/2026-09-01-catalog-gpt-5.6-luna/report.md"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Full report
           </a>
         </p>
       </header>

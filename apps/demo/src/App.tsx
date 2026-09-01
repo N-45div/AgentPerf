@@ -75,11 +75,19 @@ export default function App() {
         <h1>Fringe &amp; Co.</h1>
         <p>Neighborhood salon — book a chair. Humans use the page; agents use the tools.</p>
         <p className="numbers">
-          Measured 31 Aug 2026: an agent booking here through WebMCP tools used{" "}
-          <strong>2.4x fewer tokens</strong> and finished <strong>2.6x faster</strong> (4 vs 8
-          round-trips, 100% success both ways) than driving this same page by DOM.{" "}
-          <a href="https://github.com/N-45div/AgentPerf" target="_blank" rel="noreferrer">
-            Harness &amp; full report
+          Measured 1 Sep 2026 (n=5, both lanes 100%): an agent booking here through WebMCP
+          tools used <strong>2.4x fewer tokens</strong> and finished{" "}
+          <strong>1.5x faster</strong> (4,268 vs 10,079 tokens; 4 vs 5 round-trips) than
+          driving this same page by DOM. This page is deliberately tiny — its whole
+          accessibility tree is 1,010 characters. On the{" "}
+          <a href="../catalog/">72-product catalog</a>, the same comparison is{" "}
+          <strong>13.8x</strong>.{" "}
+          <a
+            href="https://github.com/N-45div/AgentPerf/blob/main/benchmarks/2026-09-01-booking-gpt-5.6-luna-fair-dom/report.md"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Full report
           </a>
         </p>
       </header>

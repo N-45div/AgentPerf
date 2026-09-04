@@ -1,6 +1,6 @@
 {
   "name": "agentperf",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Measure what AI agents pay to use a website: the same task via DOM driving vs. WebMCP tool calls — wall-clock, tokens, round-trips, success rate.",
   "license": "Apache-2.0",
   "repository": {
@@ -8,7 +8,14 @@
     "url": "https://github.com/N-45div/AgentPerf.git",
     "directory": "packages/harness"
   },
-  "keywords": ["webmcp", "benchmark", "agents", "mcp", "playwright", "agentperf"],
+  "keywords": [
+    "webmcp",
+    "benchmark",
+    "agents",
+    "mcp",
+    "playwright",
+    "agentperf"
+  ],
   "type": "module",
   "bin": {
     "agentperf": "./dist/cli.js"
@@ -21,7 +28,10 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsup src/cli.ts src/index.ts --format esm --dts --clean",
     "test": "vitest run",

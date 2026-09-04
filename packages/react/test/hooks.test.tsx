@@ -104,6 +104,30 @@ describe("useAgentAction", () => {
     expect(tool.inputSchema?.properties).toHaveProperty("qty");
   });
 
+  it("publishes consequentialHint for high-stakes actions", async () => {
+    renderHook(() =>
+      useAgentAction("place_order", {
+        description: "Place the order",
+        consequential: true,
+        execute: () => "ordered"
+      })
+    );
+    await flush();
+    expect(fake.tools.get("place_order")!.annotations?.consequentialHint).toBe(true);
+  });
+
+  it("omits consequentialHint when the action does not declare it", async () => {
+    renderHook(() =>
+      useAgentAction("search", {
+        description: "Search",
+        readOnly: true,
+        execute: () => []
+      })
+    );
+    await flush();
+    expect(fake.tools.get("search")!.annotations).not.toHaveProperty("consequentialHint");
+  });
+
   it("prefixes names inside an AgentBoundary", async () => {
     const wrapper = ({ children }: { children: ReactNode }) => (
       <AgentBoundary name="cart">{children}</AgentBoundary>

@@ -197,6 +197,7 @@ export function AgentSurface({
       email: z.string().email()
     }),
     destructive: true,
+    consequential: true, // a real purchase: the agent must confirm with the person first
     price: "$0.00", // reserved for x402 settlement — inert today
     execute: ({ name, email }) => {
       const placed = api.placeOrder(name, email);

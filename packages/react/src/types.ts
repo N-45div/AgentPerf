@@ -22,6 +22,11 @@ export interface ToolResult {
 export interface ToolAnnotations {
   readOnlyHint?: boolean;
   destructiveHint?: boolean;
+  /**
+   * High-stakes, irreversible or real-world action. Chrome 154+ uses it to
+   * tell an agent to confirm with the person before calling the tool.
+   */
+  consequentialHint?: boolean;
   idempotentHint?: boolean;
   untrustedContentHint?: boolean;
 }

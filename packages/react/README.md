@@ -38,9 +38,13 @@ function Cart({ cart }) {
   agents pay per token to read your page.
 - **`AgentBoundary`** scopes state keys and tool names the way your component
   tree scopes the UI.
-- **Read-only/destructive hints** (`readOnly`, `destructive`) map to WebMCP
-  annotations; a reserved `price` field is inert today and becomes x402
-  settlement in v2 without a breaking change.
+- **Read-only, destructive and consequential hints** (`readOnly`,
+  `destructive`, `consequential`) map to WebMCP annotations. `consequential`
+  publishes `consequentialHint` (Chrome 154+), which tells an agent to get
+  explicit confirmation from the person before a high-stakes or irreversible
+  action — placing an order, moving money, booking a seat.
+- **A reserved `price` field** is inert today and becomes x402 settlement
+  later without a breaking change.
 
 Works in Chrome 149+ (WebMCP origin trial / `chrome://flags/#enable-webmcp-testing`)
 and the ChatGPT desktop browser. Measure what it saves your agents with

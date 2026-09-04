@@ -24,6 +24,13 @@ export interface AgentActionConfig<Schema extends z.ZodType = z.ZodType> {
   /** True when the action destroys something a person would miss. */
   destructive?: boolean;
   /**
+   * True for high-stakes, irreversible or real-world actions: placing an
+   * order, moving money, booking a seat. Agents are expected to get explicit
+   * confirmation from the person before calling one. Published as
+   * `consequentialHint` (Chrome 154+); older browsers ignore the extra field.
+   */
+  consequential?: boolean;
+  /**
    * Reserved: price per call (e.g. "$0.001"). Inert in v1 — declared here so
    * adding x402 settlement later is not a breaking change.
    */
@@ -92,6 +99,9 @@ export function useAgentAction<Schema extends z.ZodType>(
             readOnlyHint: registeredWith.readOnly === true,
             ...(registeredWith.destructive !== undefined && {
               destructiveHint: registeredWith.destructive
+            }),
+            ...(registeredWith.consequential !== undefined && {
+              consequentialHint: registeredWith.consequential
             })
           },
           execute: async (args) => {

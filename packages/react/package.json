@@ -1,6 +1,6 @@
 {
   "name": "@agentperf/react",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Give your React app a fast lane for AI agents: token-budgeted state snapshots and schema-gated actions on the WebMCP standard (document.modelContext).",
   "license": "Apache-2.0",
   "repository": {
@@ -8,7 +8,14 @@
     "url": "https://github.com/N-45div/AgentPerf.git",
     "directory": "packages/react"
   },
-  "keywords": ["webmcp", "mcp", "agents", "react", "modelcontext", "agentperf"],
+  "keywords": [
+    "webmcp",
+    "mcp",
+    "agents",
+    "react",
+    "modelcontext",
+    "agentperf"
+  ],
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -20,7 +27,10 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts --sourcemap --clean",

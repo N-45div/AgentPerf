@@ -152,6 +152,11 @@ attached.
   single `get_page_state` tool whose snapshot is pruned to a token budget
   (default 1,000) — long arrays elided with explicit markers, values resolved
   at call time so re-renders never churn registrations.
+- **High-stakes actions say so.** An action marked `consequential` publishes
+  `consequentialHint`, the annotation Chrome added in 154, which tells an agent
+  to get explicit confirmation from the person before calling it. The demos use
+  it exactly where it belongs — `place_order`, `book_slot`, `cancel_booking` —
+  and deliberately not on `remove_from_cart`, which is trivially reversible.
 - **Writes are gated, refusals are structured.** `useAgentAction` validates
   every call with zod before your handler runs. Bad input gets back the
   violated field paths and a fix-and-retry instruction — deterministic, so

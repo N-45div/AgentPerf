@@ -76,6 +76,7 @@ export function AgentSurface({ query, serviceId, slotId, slots, bookings, api }:
       name: z.string().min(1),
       email: z.string().email()
     }),
+    consequential: true, // books a real appointment: the agent must confirm first
     price: "$0.00", // reserved for x402 settlement — inert today
     execute: ({ serviceId: svcId, slotId: slId, name, email }) => {
       const code = api.book(svcId, slId, name, email);
@@ -89,6 +90,7 @@ export function AgentSurface({ query, serviceId, slotId, slots, bookings, api }:
       "Only bookings made on this page can be cancelled.",
     input: z.object({ code: z.string() }),
     destructive: true,
+    consequential: true, // frees a real appointment slot someone else may take
     execute: ({ code }) => {
       api.cancel(code);
       return `Booking ${code} cancelled; its slot is open again.`;

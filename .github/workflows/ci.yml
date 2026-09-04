@@ -15,14 +15,27 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r --filter '@agentperf/react' --filter 'agentperf' typecheck
       - run: pnpm -r build
       - run: pnpm -r --filter '@agentperf/react' test
-      - name: Smoke test (demo + harness, no LLM)
+
+      # Browsers must be installed for the harness's own Playwright — running
+      # this anywhere else downloads a second copy and leaves this one without
+      # a browser binary.
+      - name: Install Playwright browser
+        run: pnpm --filter agentperf exec playwright install --with-deps chromium
+
+      # No LLM and no API key: serves the built demo, then drives each page's
+      # real WebMCP tools through the harness's host shim and checks the page
+      # rendered the outcome.
+      - name: Smoke test (no LLM)
         run: |
-          npx playwright install chromium --with-deps
-          nohup npx vite preview --port 4173 --strictPort >/dev/null 2>&1 &
-          sleep 2
-          node ../../packages/harness/scripts/smoke.mjs http://localhost:4173/
-        working-directory: apps/demo
+          pnpm --filter agentperf-demo exec vite preview --port 4173 --strictPort &
+          for _ in $(seq 1 30); do
+            curl -sf http://localhost:4173/demo/ > /dev/null && break
+            sleep 1
+          done
+          node packages/harness/scripts/smoke.mjs http://localhost:4173/demo/ salon
+          node packages/harness/scripts/smoke.mjs http://localhost:4173/catalog/ catalog
